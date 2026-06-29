@@ -131,7 +131,81 @@ async function saveInquiry(inquiry) {
   return record;
 }
 
+async function listInquiries(limit = 100) {
+  if (usePostgres()) {
+    await ensureDatabase();
+
+    const result = await getPool().query(
+      `
+        SELECT
+          id,
+          messenger_user_id,
+          type,
+          answers,
+          status,
+          created_at
+        FROM inquiries
+        ORDER BY created_at DESC
+        LIMIT $1
+      `,
+      [limit]
+    );
+
+    return result.rows.map((row) => ({
+      id: row.id,
+      messengerUserId: row.messenger_user_id,
+      type: row.type,
+      answers: row.answers || {},
+      status: row.status,
+      createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at
+    }));
+  }
+
+  const filePath = await ensureStorageFile();
+  const inquiries = await readInquiries(filePath);
+
+  return inquiries
+    .slice()
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+    .slice(0, limit);
+}
+
+async function updateInquiryStatus(id, status) {
+  if (usePostgres()) {
+    await ensureDatabase();
+
+    const result = await getPool().query(
+      `
+        UPDATE inquiries
+        SET status = $2
+        WHERE id = $1
+        RETURNING id
+      `,
+      [id, status]
+    );
+
+    return result.rowCount > 0;
+  }
+
+  const filePath = await ensureStorageFile();
+  const inquiries = await readInquiries(filePath);
+  const index = inquiries.findIndex((inquiry) => inquiry.id === id);
+
+  if (index === -1) return false;
+
+  inquiries[index] = {
+    ...inquiries[index],
+    status
+  };
+
+  await fs.writeFile(filePath, `${JSON.stringify(inquiries, null, 2)}\n`, "utf8");
+
+  return true;
+}
+
 module.exports = {
   ensureDatabase,
+  listInquiries,
+  updateInquiryStatus,
   saveInquiry
 };

@@ -40,8 +40,11 @@ function buildInstructions() {
     "For admission confirmation or uncertain questions, suggest Contact Staff.",
     "Do not ask for the user's name. For staff handoff, collect only contact number and concern.",
     "If the user mentions self-harm, suicide, violence, active crisis, or an emergency, tell them to contact emergency services or go to the nearest hospital immediately.",
+    "Do not begin replies with filler acknowledgements such as Sure, Okay, OK, or similar openers.",
     "Keep replies to 1 to 3 short sentences unless a short list is necessary.",
-    "Ask at most two follow-up questions at a time.",
+    "Ask a follow-up question only when it is needed to continue the inquiry or prepare a staff handoff.",
+    "Ask at most one follow-up question per reply. If several details are needed, combine them into one concise question.",
+    "Do not end every sentence with a question. Prefer a helpful answer or statement first, then one optional follow-up question.",
     "When collecting details, avoid repeating questions already answered.",
     "If a topic is complete enough for staff review, thank the user and say staff will follow up.",
     "Return only valid JSON. Do not use markdown.",
@@ -91,11 +94,18 @@ function buildConversationInput({ userMessage, selectedTopic, session }) {
   });
 }
 
+function polishReply(reply) {
+  return reply
+    .trim()
+    .replace(/^(?:sure|okay|ok)\s*(?:[-,:.!]\s*)+/i, "")
+    .trim();
+}
+
 function normalizeAiResult(parsed) {
   if (!parsed || typeof parsed.reply !== "string") return null;
 
   return {
-    reply: parsed.reply.trim(),
+    reply: polishReply(parsed.reply),
     topic: parsed.topic || "general",
     collected: parsed.collected && typeof parsed.collected === "object" ? parsed.collected : {},
     shouldSaveInquiry: Boolean(parsed.shouldSaveInquiry),

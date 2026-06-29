@@ -1,4 +1,5 @@
 const config = require("../config");
+const { isSupportedNotificationProvider } = require("../services/notificationService");
 
 function required(name, value, errors) {
   if (!value) {
@@ -18,6 +19,19 @@ function validateConfig() {
 
   if (config.security.requireMetaSignature) {
     required("META_APP_SECRET", config.metaAppSecret, errors);
+  }
+
+  if (!isSupportedNotificationProvider(config.notifications.provider)) {
+    errors.push("NOTIFICATION_PROVIDER must be one of: none, slack.");
+  }
+
+  if (config.notifications.provider === "slack") {
+    required("NOTIFICATION_SLACK_WEBHOOK_URL", config.notifications.slackWebhookUrl, errors);
+  }
+
+  if (config.staffInbox.enabled) {
+    required("STAFF_INBOX_USERNAME", config.staffInbox.username, errors);
+    required("STAFF_INBOX_PASSWORD", config.staffInbox.password, errors);
   }
 
   if (config.nodeEnv === "production") {

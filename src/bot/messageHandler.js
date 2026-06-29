@@ -6,6 +6,7 @@ const { isClearlyOutOfScope, outOfScopeReply } = require("./guardrails");
 const { clearSession, getSession, updateSession } = require("../services/sessionStore");
 const { generateAiConversation } = require("../services/aiService");
 const { saveInquiry } = require("../services/inquiryStore");
+const { notifyNewInquiry } = require("../services/notificationService");
 const messenger = require("../services/messengerClient");
 const logger = require("../utils/logger");
 
@@ -32,6 +33,35 @@ function isGenericGreeting(text = "") {
   ].includes(normalized);
 }
 
+function isBusinessHoursQuestion(text = "") {
+  const normalized = text.trim().toLowerCase();
+
+  if (!normalized) return false;
+
+  const mentionsHours =
+    /\bopen\b/.test(normalized) ||
+    /\boffice hours?\b/.test(normalized) ||
+    /\boperating hours?\b/.test(normalized) ||
+    /\bbusiness hours?\b/.test(normalized) ||
+    /\bwhat time\b/.test(normalized) ||
+    /\bdaily\b/.test(normalized) ||
+    /\btoday\b/.test(normalized);
+
+  const asksAvailability =
+    /\bare you\b/.test(normalized) ||
+    /\bdo you\b/.test(normalized) ||
+    /\bcan i\b/.test(normalized) ||
+    /\bwhen\b/.test(normalized) ||
+    /\bwhat time\b/.test(normalized) ||
+    /\bhours?\b/.test(normalized);
+
+  return mentionsHours && asksAvailability;
+}
+
+function businessHoursReply() {
+  return "Our office hours are daily from 9:00 AM to 5:00 PM. Admissions may be available 24/7, subject to staff assessment and availability. You may contact 09992206813 before visiting to confirm.";
+}
+
 async function sendSafetyNotice(senderId) {
   await messenger.sendText(senderId, emergencyGuidance(config.business.contactNumber));
 }
@@ -55,6 +85,14 @@ function inquirySaveKey(result) {
 
 async function maybeSaveAiInquiry(senderId, session, result) {
   if (!result.shouldSaveInquiry || !result.inquiryType) {
+    logger.info("AI-guided inquiry not saved", {
+      reason: !result.shouldSaveInquiry ? "ai_did_not_request_save" : "missing_inquiry_type",
+      topic: result.topic,
+      status: result.status,
+      shouldSaveInquiry: result.shouldSaveInquiry,
+      inquiryType: result.inquiryType,
+      collectedFields: Object.keys(result.collected || {})
+    });
     return session.ai.savedInquiryKeys || [];
   }
 
@@ -62,8 +100,22 @@ async function maybeSaveAiInquiry(senderId, session, result) {
   const savedKeys = session.ai.savedInquiryKeys || [];
 
   if (savedKeys.includes(key)) {
+    logger.info("AI-guided inquiry save skipped", {
+      reason: "duplicate_in_session",
+      topic: result.topic,
+      inquiryType: result.inquiryType,
+      status: result.status,
+      collectedFields: Object.keys(result.collected || {})
+    });
     return savedKeys;
   }
+
+  logger.info("AI-guided inquiry save requested", {
+    topic: result.topic,
+    inquiryType: result.inquiryType,
+    status: result.status,
+    collectedFields: Object.keys(result.collected || {})
+  });
 
   const record = await saveInquiry({
     messengerUserId: senderId,
@@ -74,8 +126,12 @@ async function maybeSaveAiInquiry(senderId, session, result) {
 
   logger.info("AI-guided inquiry saved", {
     inquiryId: record.id,
-    type: result.inquiryType
+    type: result.inquiryType,
+    status: record.status,
+    collectedFields: Object.keys(record.answers || {})
   });
+
+  await notifyNewInquiry(record);
 
   return [...savedKeys, key];
 }
@@ -152,6 +208,11 @@ async function handleMessageEvent(event) {
       if (isGenericGreeting(messageText)) {
         clearSession(senderId);
         await sendGreeting(senderId);
+        return;
+      }
+
+      if (isBusinessHoursQuestion(messageText)) {
+        await messenger.sendText(senderId, businessHoursReply(), mainMenuQuickReplies());
         return;
       }
 

@@ -50,6 +50,15 @@ INQUIRIES_FILE=./data/inquiries.json
 KNOWLEDGE_BASE_FILE=./knowledge/st-judes-reference.md
 DATABASE_URL=${{Postgres.DATABASE_URL}}
 DATABASE_SSL=false
+
+NOTIFICATION_PROVIDER=none
+NOTIFICATION_SLACK_WEBHOOK_URL=
+
+STAFF_INBOX_ENABLED=false
+STAFF_INBOX_USERNAME=
+STAFF_INBOX_PASSWORD=
+STAFF_INBOX_LOCAL_ONLY=true
+
 JSON_BODY_LIMIT=256kb
 GENERAL_RATE_LIMIT_WINDOW_MS=900000
 GENERAL_RATE_LIMIT_MAX=600
@@ -59,7 +68,37 @@ WEBHOOK_RATE_LIMIT_MAX=300
 
 For durable inquiry storage, add Railway Postgres and set `DATABASE_URL` from the Postgres service. The app automatically creates the `inquiries` table on startup. If using an external Postgres provider that requires SSL, set `DATABASE_SSL=true`.
 
-## 4. Configure Meta Webhook
+## 4. Enable New Inquiry Notifications
+
+The notification layer is provider-driven. Keep it disabled with:
+
+```env
+NOTIFICATION_PROVIDER=none
+```
+
+To alert staff immediately when a new inquiry is saved, create a Slack incoming webhook for the private staff channel that should receive alerts, then set:
+
+```env
+NOTIFICATION_PROVIDER=slack
+NOTIFICATION_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+```
+
+The bot sends a concise alert with the inquiry type, status, Messenger user ID, saved inquiry ID, timestamp, and captured answers. Inquiry storage happens first; if Slack is unavailable, the inquiry remains saved and the notification failure is logged for follow-up.
+
+## 5. View Railway Inquiries Locally
+
+For a local-only staff interface connected to Railway data:
+
+1. Copy the Railway Postgres `DATABASE_URL` into your local `.env`.
+2. Set `STAFF_INBOX_ENABLED=true`.
+3. Set `STAFF_INBOX_USERNAME` and `STAFF_INBOX_PASSWORD`.
+4. Keep `STAFF_INBOX_LOCAL_ONLY=true`.
+5. Run `npm run dev`.
+6. Open `http://localhost:3000/staff/inquiries`.
+
+This keeps the staff inbox on your computer while reading the same inquiry database used by the Railway app. Do not enable `STAFF_INBOX_ENABLED=true` in Railway until you are ready to expose and secure it for production staff access.
+
+## 6. Configure Meta Webhook
 
 In Meta for Developers, set the callback URL to:
 
@@ -74,7 +113,7 @@ Subscribe the connected page to:
 - `messages`
 - `messaging_postbacks`
 
-## 5. Smoke Test
+## 7. Smoke Test
 
 After deploy:
 
@@ -85,3 +124,4 @@ After deploy:
 5. Send `Hello` to the Facebook Page in Messenger.
 6. Send `make a python app` and confirm the bot refuses as out-of-scope.
 7. Send an actual facility inquiry and confirm the AI stays scoped to St Jude's.
+8. Confirm the configured Slack channel receives a new inquiry alert after the inquiry is saved.

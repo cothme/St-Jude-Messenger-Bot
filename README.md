@@ -22,6 +22,7 @@ Facebook Messenger chatbot for **St Jude's Psychiatric and Custodial Home**. It 
   - Crisis and emergency messages receive immediate emergency guidance
   - Final assessment is clearly assigned to qualified staff
 - Structured inquiry storage in Postgres when `DATABASE_URL` is set, with local JSON fallback in `data/inquiries.json`.
+- Optional new-inquiry notifications through a provider selected by environment variables.
 - Local approved knowledge base in `knowledge/st-judes-reference.md`.
 - Environment-based configuration for credentials and business details.
 
@@ -102,6 +103,14 @@ Facebook Messenger chatbot for **St Jude's Psychiatric and Custodial Home**. It 
    KNOWLEDGE_BASE_FILE=./knowledge/st-judes-reference.md
    DATABASE_URL=
    DATABASE_SSL=false
+
+   NOTIFICATION_PROVIDER=none
+   NOTIFICATION_SLACK_WEBHOOK_URL=
+
+   STAFF_INBOX_ENABLED=false
+   STAFF_INBOX_USERNAME=
+   STAFF_INBOX_PASSWORD=
+   STAFF_INBOX_LOCAL_ONLY=true
    ```
 
 4. Start the bot locally:
@@ -133,6 +142,41 @@ npm start
 Use your host's secret manager or environment settings for `PAGE_ACCESS_TOKEN`, `VERIFY_TOKEN`, `META_APP_SECRET`, and `OPENAI_API_KEY`. Do not commit `.env`.
 
 For Railway deployment, see [DEPLOYMENT.md](./DEPLOYMENT.md). For production guardrails and secret handling, see [SECURITY.md](./SECURITY.md).
+
+New inquiry alerts are disabled by default. To send immediate staff alerts through Slack, set:
+
+```env
+NOTIFICATION_PROVIDER=slack
+NOTIFICATION_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+```
+
+The alert is sent only after the inquiry is saved. Notification delivery failures are logged but do not prevent the user conversation from continuing.
+
+## Local Staff Inbox
+
+You can view saved inquiries locally at:
+
+```text
+http://localhost:3000/staff/inquiries
+```
+
+Enable it with:
+
+```env
+STAFF_INBOX_ENABLED=true
+STAFF_INBOX_USERNAME=staff
+STAFF_INBOX_PASSWORD=replace_with_a_local_password
+STAFF_INBOX_LOCAL_ONLY=true
+```
+
+To view inquiries saved by the Railway deployment while keeping the interface local, copy the Railway Postgres connection string into your local `.env`:
+
+```env
+DATABASE_URL=your_railway_postgres_database_url
+DATABASE_SSL=false
+```
+
+Keep `STAFF_INBOX_LOCAL_ONLY=true` for local use. With `DATABASE_URL` empty, the inbox reads from `data/inquiries.json` instead.
 
 ## Messenger Entry Points
 

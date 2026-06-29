@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const config = require("./config");
 const webhookRouter = require("./routes/webhook");
+const staffInboxRouter = require("./routes/staffInbox");
 const {
   buildGeneralRateLimit,
   buildWebhookRateLimit,
@@ -48,6 +49,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/webhook", buildWebhookRateLimit(), verifyMetaSignature, webhookRouter);
+app.use("/staff", staffInboxRouter);
 
 app.use((req, res) => {
   res.status(404).json({

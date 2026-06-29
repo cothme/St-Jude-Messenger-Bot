@@ -39,6 +39,16 @@ const config = {
     landmarkInstructions:
       process.env.LANDMARK_INSTRUCTIONS || "Landmark instructions: [LANDMARK_INSTRUCTIONS]"
   },
+  notifications: {
+    provider: (process.env.NOTIFICATION_PROVIDER || "none").toLowerCase(),
+    slackWebhookUrl: process.env.NOTIFICATION_SLACK_WEBHOOK_URL || ""
+  },
+  staffInbox: {
+    enabled: booleanFromEnv(process.env.STAFF_INBOX_ENABLED, false),
+    username: process.env.STAFF_INBOX_USERNAME || "",
+    password: process.env.STAFF_INBOX_PASSWORD || "",
+    localOnly: booleanFromEnv(process.env.STAFF_INBOX_LOCAL_ONLY, true)
+  },
   inquiriesFile: process.env.INQUIRIES_FILE || "./data/inquiries.json",
   knowledgeBaseFile: process.env.KNOWLEDGE_BASE_FILE || "./knowledge/st-judes-reference.md",
   databaseUrl: process.env.DATABASE_URL || "",
