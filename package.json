@@ -1,0 +1,31 @@
+{
+  "name": "st-jude-messenger-bot",
+  "version": "0.1.0",
+  "description": "Facebook Messenger chatbot for St Jude's Psychiatric and Custodial Home.",
+  "main": "src/server.js",
+  "scripts": {
+    "build": "npm run check",
+    "check": "node scripts/check-syntax.js",
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "messenger",
+    "chatbot",
+    "facebook",
+    "express"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "morgan": "^1.10.0",
+    "openai": "^6.45.0"
+  }
+}
