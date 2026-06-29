@@ -10,11 +10,26 @@ const messenger = require("../services/messengerClient");
 const logger = require("../utils/logger");
 
 function greetingText() {
-  return "Hello! Welcome to St Jude's Psychiatric and Custodial Home. How may we help you today?";
+  return `Hello, this is ${config.business.name}. How can I help?`;
 }
 
 async function sendGreeting(senderId) {
   await messenger.sendText(senderId, greetingText(), mainMenuQuickReplies());
+}
+
+function isGenericGreeting(text = "") {
+  const normalized = text.trim().toLowerCase().replace(/[!.?,\s]+$/g, "");
+
+  return [
+    "hello",
+    "hi",
+    "hey",
+    "good morning",
+    "good afternoon",
+    "good evening",
+    "kumusta",
+    "kamusta"
+  ].includes(normalized);
 }
 
 async function sendSafetyNotice(senderId) {
@@ -134,6 +149,12 @@ async function handleMessageEvent(event) {
     }
 
     if (messageText) {
+      if (isGenericGreeting(messageText)) {
+        clearSession(senderId);
+        await sendGreeting(senderId);
+        return;
+      }
+
       if (isClearlyOutOfScope(messageText)) {
         await messenger.sendText(senderId, outOfScopeReply(), mainMenuQuickReplies());
         return;
