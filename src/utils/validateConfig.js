@@ -20,6 +20,10 @@ function validateConfig() {
     required("META_APP_SECRET", config.metaAppSecret, errors);
   }
 
+  if (config.nodeEnv === "production") {
+    required("DATABASE_URL", config.databaseUrl, errors);
+  }
+
   if (errors.length) {
     throw new Error(`Invalid configuration: ${errors.join(" ")}`);
   }

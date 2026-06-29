@@ -21,7 +21,8 @@ Facebook Messenger chatbot for **St Jude's Psychiatric and Custodial Home**. It 
   - Prompt-injection requests are blocked before OpenAI is called
   - Crisis and emergency messages receive immediate emergency guidance
   - Final assessment is clearly assigned to qualified staff
-- Structured inquiry storage in `data/inquiries.json`.
+- Structured inquiry storage in Postgres when `DATABASE_URL` is set, with local JSON fallback in `data/inquiries.json`.
+- Local approved knowledge base in `knowledge/st-judes-reference.md`.
 - Environment-based configuration for credentials and business details.
 
 ## Project Structure
@@ -30,6 +31,8 @@ Facebook Messenger chatbot for **St Jude's Psychiatric and Custodial Home**. It 
 .
 |-- data/
 |   `-- .gitkeep
+|-- knowledge/
+|   `-- st-judes-reference.md
 |-- src/
 |   |-- bot/
 |   |   |-- intent.js
@@ -90,12 +93,15 @@ Facebook Messenger chatbot for **St Jude's Psychiatric and Custodial Home**. It 
    OPENAI_MODEL=gpt-5.4-nano
    OPENAI_MAX_OUTPUT_TOKENS=160
 
-   BUSINESS_ADDRESS=[BUSINESS_ADDRESS]
-   GOOGLE_MAPS_LINK=[GOOGLE_MAPS_LINK]
-   CONTACT_NUMBER=[CONTACT_NUMBER]
-   LANDMARK_INSTRUCTIONS=Near [LANDMARK_OR_DIRECTION_DETAILS]
+   BUSINESS_ADDRESS=Lot 2 & 3, Interior E. Rodriguez Avenue, Barangay San Isidro, Taytay, 1920 Rizal
+   GOOGLE_MAPS_LINK=https://maps.app.goo.gl/k9NgWQu7TdQXc9nV8
+   CONTACT_NUMBER=09992206813
+   LANDMARK_INSTRUCTIONS=Interior E. Rodriguez Avenue, Barangay San Isidro, Taytay, Rizal
 
    INQUIRIES_FILE=./data/inquiries.json
+   KNOWLEDGE_BASE_FILE=./knowledge/st-judes-reference.md
+   DATABASE_URL=
+   DATABASE_SSL=false
    ```
 
 4. Start the bot locally:
@@ -132,6 +138,7 @@ For Railway deployment, see [DEPLOYMENT.md](./DEPLOYMENT.md). For production gua
 
 The bot supports:
 
+- Public status: `GET /`
 - Webhook verification: `GET /webhook`
 - Messenger events: `POST /webhook`
 - Health check: `GET /health`
@@ -166,6 +173,12 @@ The AI prompt is intentionally restricted. It may answer common facility questio
 The bot does not ask for the user's name. Staff handoff collects only contact number and concern.
 
 Code-level guardrails block clearly unrelated requests, such as coding, apps, schoolwork, recipes, creative writing, finance, legal advice, translation, jailbreaks, and prompt-injection attempts before they are sent to OpenAI.
+
+## Knowledge Base
+
+The AI references `knowledge/st-judes-reference.md` for approved public facility information such as location, contact number, office hours, consultation fee, monthly care rate, inclusions, exclusions, and admission disclaimers.
+
+Keep this file limited to public, staff-approved information. Do not add patient records, private medical details, diagnoses, or sensitive clinical information.
 
 The default model is set to the lowest-cost OpenAI text option currently selected for this project:
 

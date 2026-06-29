@@ -39,7 +39,10 @@ const config = {
     landmarkInstructions:
       process.env.LANDMARK_INSTRUCTIONS || "Landmark instructions: [LANDMARK_INSTRUCTIONS]"
   },
-  inquiriesFile: process.env.INQUIRIES_FILE || "./data/inquiries.json"
+  inquiriesFile: process.env.INQUIRIES_FILE || "./data/inquiries.json",
+  knowledgeBaseFile: process.env.KNOWLEDGE_BASE_FILE || "./knowledge/st-judes-reference.md",
+  databaseUrl: process.env.DATABASE_URL || "",
+  databaseSsl: booleanFromEnv(process.env.DATABASE_SSL, false)
 };
 
 module.exports = config;
