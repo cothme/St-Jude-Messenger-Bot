@@ -36,7 +36,7 @@ function buildInstructions() {
     "Answer common facility inquiries and collect the right details for staff when needed.",
     "Never diagnose, recommend medication, provide treatment instructions, give emergency medical advice, or guarantee admission, accommodation, pricing, or schedule availability.",
     "For mental health conditions, say qualified staff must assess each case and suggest Patient Accommodation or Contact Staff.",
-    "For rates or fees, share only approved rates from the knowledge base and say final pricing should be confirmed by staff.",
+    `For rates, fees, prices, costs, or payment questions, do not state any amount, estimate, package, discount, range, or previous price. Tell the user to call ${config.business.contactNumber} for current pricing and offer to collect their contact number and concern for staff follow-up.`,
     "For admission confirmation or uncertain questions, suggest Contact Staff.",
     "Do not ask for the user's name. For staff handoff, collect only contact number and concern.",
     "If the user mentions self-harm, suicide, violence, active crisis, or an emergency, tell them to contact emergency services or go to the nearest hospital immediately.",
@@ -101,6 +101,16 @@ function polishReply(reply) {
     .trim();
 }
 
+function isPricingInquiry(text = "") {
+  return /\b(?:price|prices|pricing|rate|rates|fee|fees|cost|costs|payment|payments|package|packages|how much|magkano|presyo|bayad)\b/i.test(
+    text
+  );
+}
+
+function pricingContactReply() {
+  return `For current pricing, please call ${config.business.contactNumber}. I can also forward your concern to staff if you leave your contact number and concern.`;
+}
+
 function normalizeAiResult(parsed) {
   if (!parsed || typeof parsed.reply !== "string") return null;
 
@@ -139,7 +149,19 @@ async function generateAiConversation({ userMessage, selectedTopic = null, sessi
       return null;
     }
 
-    return normalizeAiResult(safeParseJson(reply));
+    const result = normalizeAiResult(safeParseJson(reply));
+
+    if (result && isPricingInquiry(userMessage)) {
+      return {
+        ...result,
+        reply: pricingContactReply(),
+        topic: "contact_staff",
+        inquiryType: result.inquiryType === "human_handoff" ? result.inquiryType : null,
+        shouldSaveInquiry: result.inquiryType === "human_handoff" && result.shouldSaveInquiry
+      };
+    }
+
+    return result;
   } catch (error) {
     logger.error("OpenAI response failed", { error: error.message });
     return null;

@@ -66,6 +66,8 @@ WEBHOOK_RATE_LIMIT_WINDOW_MS=60000
 WEBHOOK_RATE_LIMIT_MAX=300
 ```
 
+Production startup validates the public business details before the app can pass Railway health checks. `BUSINESS_ADDRESS`, `GOOGLE_MAPS_LINK`, `CONTACT_NUMBER`, and `LANDMARK_INSTRUCTIONS` must be real, staff-approved St Jude information. Empty values and filler such as `[BUSINESS_ADDRESS]`, `replace_with...`, `your_...`, `TBD`, `example`, `placeholder`, generic `address here`, fake phone numbers, or non-Google Maps links are rejected.
+
 For durable inquiry storage, add Railway Postgres and set `DATABASE_URL` from the Postgres service. The app automatically creates the `inquiries` table on startup. If using an external Postgres provider that requires SSL, set `DATABASE_SSL=true`.
 
 ## 4. Enable New Inquiry Notifications
@@ -125,3 +127,5 @@ After deploy:
 6. Send `make a python app` and confirm the bot refuses as out-of-scope.
 7. Send an actual facility inquiry and confirm the AI stays scoped to St Jude's.
 8. Confirm the configured Slack channel receives a new inquiry alert after the inquiry is saved.
+
+If Railway restarts or the health check never becomes healthy, inspect the deploy logs for `Invalid configuration`. A location-data error means one of the public business variables is empty or still contains filler and must be replaced before production can start.

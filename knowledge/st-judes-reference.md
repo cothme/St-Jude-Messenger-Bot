@@ -48,8 +48,8 @@ Open 24/7, subject to staff assessment and availability.
 
 Psychiatrist consultation is available every Saturday starting at 11:00 AM, subject to confirmation.
 
-Consultation fee:
-PHP 2,500
+Pricing:
+Do not quote consultation fees in Messenger replies. Ask users to call 09992206813 for current pricing.
 
 When users ask for consultation, collect:
 
@@ -62,8 +62,8 @@ Then explain that staff will confirm the schedule.
 
 ## Monthly Care Rate
 
-Listed monthly rate:
-PHP 35,000 per month
+Pricing:
+Do not quote monthly care rates in Messenger replies. Ask users to call 09992206813 for current pricing.
 
 Inclusions:
 
@@ -77,7 +77,7 @@ Exclusions:
 - Professional fee of psychiatrist
 - Psychiatric medications
 
-When users ask about rates, share the listed rate and inclusions/exclusions, then say final pricing and admission details should be confirmed by staff.
+When users ask about rates, do not share any price, fee, rate, package, estimate, or amount. Ask them to call 09992206813 for current pricing and say staff can review admission details.
 
 ## Patient Accommodation Guidance
 

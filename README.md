@@ -141,6 +141,8 @@ npm start
 
 Use your host's secret manager or environment settings for `PAGE_ACCESS_TOKEN`, `VERIFY_TOKEN`, `META_APP_SECRET`, and `OPENAI_API_KEY`. Do not commit `.env`.
 
+Production also validates public St Jude business details at startup. `BUSINESS_ADDRESS`, `GOOGLE_MAPS_LINK`, `CONTACT_NUMBER`, and `LANDMARK_INSTRUCTIONS` must be real, staff-approved values; empty fields, bracketed placeholders, `replace_with...`, `your_...`, `TBD`, `example`, `placeholder`, fake phone numbers, generic `address here`, and non-Google Maps links stop the app before it can go live.
+
 For Railway deployment, see [DEPLOYMENT.md](./DEPLOYMENT.md). For production guardrails and secret handling, see [SECURITY.md](./SECURITY.md).
 
 New inquiry alerts are disabled by default. To send immediate staff alerts through Slack, set:
